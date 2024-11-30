@@ -4,7 +4,6 @@ from keras.models import load_model
 from keras.layers import DepthwiseConv2D
 from PIL import Image, ImageOps
 import numpy as np
-import recycle_data
 
 app = Flask(__name__)
 
