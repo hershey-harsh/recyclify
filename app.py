@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, jsonify
 import requests
-from keras.models import load_model
 from keras.layers import DepthwiseConv2D
 from PIL import Image, ImageOps
 import numpy as np
+
+import os
+from keras.models import load_model
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, 'keras_model.h5')
 
 app = Flask(__name__)
 
@@ -114,7 +119,7 @@ class CustomDepthwiseConv2D(DepthwiseConv2D):
         super().__init__(**kwargs)
 
 # Load the model with the custom layer
-model = load_model("keras_model.h5", custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D}, compile=False)
+model = load_model(model_path, custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D}, compile=False)
 
 class_names = open("labels.txt", "r").readlines()
 
