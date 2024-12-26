@@ -1,15 +1,16 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for
 import requests
+import random
+from keras.models import load_model
 from keras.layers import DepthwiseConv2D
 from PIL import Image, ImageOps
 import numpy as np
-
 import os
-from keras.models import load_model
+import string
+import recycle_data
+from flask import send_from_directory
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(current_dir, 'keras_model.h5')
-
+IMG_HISTORY_FOLDER = os.path.join(os.getcwd(), 'img_history')
 app = Flask(__name__)
 
 items_real_names = {
@@ -71,15 +72,13 @@ recyclable_plastic_items_1_2 = [
     'plastic_straws',
 ]
 
-recyclable_plastic_items_3 = [
-]
+recyclable_plastic_items_3 = []
 
 recyclable_plastic_items_4 = [
     "plastic_shopping_bags",
 ]
 
-recyclable_plastic_items_5 = [
-]
+recyclable_plastic_items_5 = []
 
 recyclable_plastic_items_6 = [
     "plastic_food_containers",
@@ -111,25 +110,18 @@ recycle_compost = "Food waste and organic materials decompose into compost, enri
 recycle_reusable = "Items like clothing can be reused, donated, or repurposed, reducing landfill waste and conserving resources."
 recycle_trash = "Items that can’t be recycled or reused, like aerosol cans and plastic cutlery, must be disposed of safely to avoid contaminating recycling."
 
-# Custom function to handle the 'groups' argument
 class CustomDepthwiseConv2D(DepthwiseConv2D):
     def __init__(self, **kwargs):
-        # Remove the 'groups' argument if present
         kwargs.pop('groups', None)
         super().__init__(**kwargs)
 
-# Load the model with the custom layer
-model = load_model(model_path, custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D}, compile=False)
+model = load_model("keras_model.h5", custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D}, compile=False)
 
 class_names = open("labels.txt", "r").readlines()
 
 data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
 
-# Mappings for category and explanation
 def get_category_and_explanation(item):
-    """Return the category and explanation for the given item."""
-    
-    # Check if the item is in any of the recyclable categories
     if item in recyclable_paper_items:
         return 'Recyclable Paper', recycle_paper
     elif item in recyclable_metal_items:
@@ -161,40 +153,50 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Check if a file was uploaded
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
 
     file = request.files['file']
-    
     if file:
-        # Load and preprocess the image
+        random_name = ''.join(random.choices(string.ascii_letters + string.digits, k=12)) + ".png"
+        upload_folder = 'img_history'
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, random_name)
+        file.save(file_path)
+
+        image_url = url_for('serve_image', filename=random_name, _external=True)
+
         image = Image.open(file).convert('RGB')
         image = ImageOps.fit(image, (224, 224), Image.Resampling.LANCZOS)
-        image_array = np.asarray(image) / 255.0  # Normalize to [0, 1]
+        image_array = np.asarray(image) / 255.0
         data[0] = image_array
 
-        # Run prediction
         prediction = model.predict(data)
         predicted_index = np.argmax(prediction)
-        confidence = float(prediction[0][predicted_index]) * 100  # Convert to native Python float
+        confidence = float(prediction[0][predicted_index]) * 100
         category = class_names[predicted_index].strip()
 
-        # Get category and explanation
         item_category, explanation = get_category_and_explanation(category)
 
-        # Construct result
         result = {
-            'item': items_real_names.get(category, category),  # Use real item name from the dictionary
+            'item': items_real_names.get(category, category),
             'confidence': confidence,
             'category': item_category,
-            'explanation': explanation
+            'explanation': explanation,
+            'image_url': image_url,
         }
 
         return jsonify(result)
 
     return jsonify({'error': 'Invalid file'}), 400
 
+@app.route('/history/<filename>', methods=['GET'])
+def serve_image(filename):
+    file_path = os.path.join(IMG_HISTORY_FOLDER, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(IMG_HISTORY_FOLDER, filename)
+    else:
+        return jsonify({'error': 'Image not found'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

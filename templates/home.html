@@ -9,20 +9,18 @@
         
         <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
 
-    <body>
-        <section class="bg-white dark:bg-gray-900">
+    <body class="bg-white">
+        <section>
             <div class="pt-8 px-4 mx-auto max-w-screen-xl text-center">
 
                 <div class="py-8 px-4 mx-auto max-w-screen-xl text-center">
-                    <!-- Title and SVG Wrapper -->
                     <div class="relative flex justify-center items-center mb-4">
-                        <!-- Centered Title -->
-                        <h1 class="text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+                        <h1 class="text-4xl font-extrabold tracking-tight leading-none text-black md:text-5xl lg:text-6xl">
                             Recyclify
                         </h1>
-                        <!-- SVG positioned to the right -->
                         <svg class="absolute left-0 top-0 transform" style="transform: translate(-125px, 300px);" width="305px" height="343.6246px" viewBox="0 0 382 343.6246" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                             <g id="Background" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                                 <g id="Man-/-Head-/-1" transform="translate(194.2101, 87.7526)">
@@ -183,33 +181,67 @@
 
                     </div>
 
-                <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">Join our recycling initiative and make a positive impact on the environment. Our app uses advanced image classification to identify and sort waste, helping you recycle more effectively and reduce waste. Start your journey toward a cleaner, greener future today!
+                <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">Join our recycling initiative and make a positive impact on the environment. Our app uses advanced image classification to identify and sort waste, helping you recycle more effectively and reduce waste. Start your journey toward a cleaner, greener future today!
                 </p></p>
                 <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-                    <a href="https://github.com/hershey-harsh/recyclify/" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-gray-900 hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-900">
+                    <a href="https://github.com/hershey-harsh/recyclify/" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-gray-900 hover:bg-gray-700 focus:ring-4 focus:ring-gray-300">
                         Open Source
                         <svg class="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
                     </a>
+
+                    <button id="open-history-modal" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-gray-900 hover:bg-gray-700 focus:ring-4 focus:ring-gray-300">
+                        View History
+                    </button>
                 </div>
             </div>
         </section>
-        
-        <div class="px-4 mx-auto max-w-screen-md dropbox-container">
-            <div class="flex items-center justify-center w-full">
-                <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5A5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                        </svg>
-                        <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
-                    </div>
-                    <input id="dropzone-file" type="file" class="hidden" />
-                </label>
+
+        <div id="history-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-25 backdrop-blur-md flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Prediction History</h2>
+                <ul id="history-list" class="space-y-2">
+                    <li class="text-gray-500">Loading history...</li>
+                </ul>
+                <div class="flex justify-between mt-4">
+                    <button id="clear-history" class="py-2 px-4 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Clear History
+                    </button>
+                    <button id="close-history-modal" class="py-2 px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-700">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
+        
+        <section>
+            <div class="px-4 mx-auto max-w-screen-md dropbox-container">
+                <div class="flex items-center justify-center w-full">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5A5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p class="text-xs text-gray-500">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                        </div>
+                        <input id="dropzone-file" type="file" class="hidden" />
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <div id="dispose-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-25 backdrop-blur-md flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Disposal Instructions</h2>
+                <p id="dispose-content" class="text-gray-700">Loading disposal instructions...</p>
+                <div class="flex justify-end mt-4">
+                    <button id="close-dispose-modal" class="py-2 px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-700">Close</button>
+                </div>
+            </div>
+        </div>
+        
         <script src="{{ url_for('static', filename='js/image_process.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
     </body>
